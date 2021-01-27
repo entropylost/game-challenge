@@ -18,9 +18,9 @@
     fix(
         createArr(0),
         createArr(0),
-        createArr(0.3),
-        createArr(0),
         createArr(0.2),
+        createArr(0.15),
+        createArr(0.1),
         [0, 0, 0, 0],
         0,
         false,
@@ -50,27 +50,25 @@
         )((posXArr, posYArr) =>
         fc(
             velXArr.map((v, i) =>
-                /* (v + ((i == 0) ? (accel[0] - accel[2]) * dt * accelRatio : 0))
+                (v + ((i == 0) ? (accel[3] - accel[1]) * dt * accelRatio : 0))
                 * (
                     Math.abs(posXArr[i]) > 1 - sizeArr[i] &&
                     Math.sign(v) == Math.sign(posXArr[i])
-                ) ? -1 : 1 */
-                v
+                ? -1 : 1)
             ),
             velYArr.map((v, i) =>
-                /* (v + ((i == 0) ? (accel[1] - accel[3]) * dt * accelRatio : 0))
+                (v + ((i == 0) ? (accel[2] - accel[0]) * dt * accelRatio : 0))
                 * (
                     Math.abs(posYArr[i]) > 1 - sizeArr[i] &&
                     Math.sign(v) == Math.sign(posYArr[i])
-                ) ? -1 : 1 */
-                v
+                ? -1 : 1)
             ),
         )((velXArr, velYArr) =>
         fc(
             keydetector.cloneNode(true)
         )((keydetector) =>
         fc(
-            () => setTimeout(() => f(
+            (accel) => setTimeout(() => f(
                 posXArr,
                 posYArr,
                 velXArr,
@@ -81,12 +79,41 @@
                 lost,
                 keydetector,
             ), Date.now() - startingTime - tick * 1000 / 60),
-        )((next) => {
+        )((next) =>
+        fc(
+            next(accel)
+        )((nextTimeout) => {
         document.body.append(keydetector);
-        keydetector.addEventListener("keyup", (e) => {});
-        keydetector.addEventListener("keydown", (e) => {});
-        next();
-        }))))
+        keydetector.focus();
+        keydetector.addEventListener("keyup", (e) =>
+            fc(
+                e.key === 'w' ? [0, accel[1], accel[2], accel[3]] :
+                e.key === 'a' ? [accel[0], 0, accel[2], accel[3]] :
+                e.key === 's' ? [accel[0], accel[1], 0, accel[3]] :
+                e.key === 'd' ? [accel[0], accel[1], accel[2], 0] :
+                undefined
+            )((newAccel) => {
+                if (newAccel !== undefined) {
+                    clearTimeout(nextTimeout);
+                    next(newAccel);
+                }
+            })
+        );
+        keydetector.addEventListener("keydown", (e) =>
+            fc(
+                e.key === 'w' ? [1, accel[1], accel[2], accel[3]] :
+                e.key === 'a' ? [accel[0], 1, accel[2], accel[3]] :
+                e.key === 's' ? [accel[0], accel[1], 1, accel[3]] :
+                e.key === 'd' ? [accel[0], accel[1], accel[2], 1] :
+                undefined
+            )((newAccel) => {
+                if (newAccel !== undefined) {
+                    clearTimeout(nextTimeout);
+                    next(newAccel);
+                }
+            })
+        );
+        })))));
     })
 })(
     /* createArr */ (...x) => x
@@ -98,5 +125,5 @@
 ,   /* size */ 500
 ,   1 / 60
 ,   /* startingTime */ Date.now()
-,   /* accelRatio */ 1
+,   /* accelRatio */ 0.3
 );
