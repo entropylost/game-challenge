@@ -7,22 +7,21 @@
 ,   fix /* Fixedpoint functor. */
 ,   canvas /* The 2d context of the canvas. */
 ,   size /* The size of the canvas. */
-,   dt
-,   startingTime
+,   ratio /* The ratio of the sizes to control line width. */
 ,   accelRatio
 ) => {
     console.log(canvas);
-    canvas.scale(size / 2, size / 2);
-    canvas.translate(1, 1);
+    canvas.scale(size / 2 * ratio, size / 2 * ratio);
+    canvas.translate(1 / ratio, 1 / ratio);
     /* The 0th entity is the player */
     fix(
-        createArr(0),
-        createArr(0),
-        createArr(0.2),
-        createArr(0.15),
-        createArr(0.1),
+        createArr(0, 0.2),
+        createArr(0, -0.3),
+        createArr(0.2, 0.1),
+        createArr(0.15, -0.3),
+        createArr(0.1, 0.2),
         [0, 0, 0, 0],
-        0,
+        Date.now(),
         false,
         document.getElementById('keydetector')
     )((
@@ -33,17 +32,18 @@
         velYArr,
         sizeArr,
         accel,
-        tick,
+        lastTime,
         lost,
         keydetector,
     ) => {
         keydetector.remove();
-        canvas.clearRect(-1, -1, 2, 2);
+        canvas.clearRect(-1 / ratio, -1 / ratio, 2 / ratio, 2 / ratio);
         sizeArr.forEach((size, i) => {
             canvas.beginPath();
-            canvas.arc(posXArr[i], posYArr[i], size, 0, 2 * Math.PI);
-            canvas.fill();
+            canvas.arc(posXArr[i] / ratio, posYArr[i] / ratio, size / ratio, 0, 2 * Math.PI);
+            if (i === 0) canvas.fill(); else canvas.stroke();
         });
+        fc((Date.now() - lastTime) / 1000, Date.now())((dt, currentTime) =>
         fc(
             posXArr.map((p, i) => p + velXArr[i] * dt),
             posYArr.map((p, i) => p + velYArr[i] * dt),
@@ -68,21 +68,18 @@
             keydetector.cloneNode(true)
         )((keydetector) =>
         fc(
-            (accel) => setTimeout(() => f(
+            (accel) => f(
                 posXArr,
                 posYArr,
                 velXArr,
                 velYArr,
                 sizeArr,
                 accel,
-                tick + 1,
+                currentTime,
                 lost,
                 keydetector,
-            ), Date.now() - startingTime - tick * 1000 / 60),
-        )((next) =>
-        fc(
-            next(accel)
-        )((nextTimeout) => {
+            ),
+        )((next) => {
         document.body.append(keydetector);
         keydetector.focus();
         keydetector.addEventListener("keyup", (e) =>
@@ -93,10 +90,12 @@
                 e.key === 'd' ? [accel[0], accel[1], accel[2], 0] :
                 undefined
             )((newAccel) => {
-                if (newAccel !== undefined) {
-                    clearTimeout(nextTimeout);
-                    next(newAccel);
-                }
+                if (newAccel !== undefined)
+                    fc(setTimeout(() => {}, 0))(ti => {
+                        clearTimeout(ti);
+                        clearTimeout(ti - 1);
+                        next(newAccel);
+                    });
             })
         );
         keydetector.addEventListener("keydown", (e) =>
@@ -107,12 +106,15 @@
                 e.key === 'd' ? [accel[0], accel[1], accel[2], 1] :
                 undefined
             )((newAccel) => {
-                if (newAccel !== undefined) {
-                    clearTimeout(nextTimeout);
-                    next(newAccel);
-                }
+                if (newAccel !== undefined)
+                    fc(setTimeout(() => {}, 0))(ti => {
+                        clearTimeout(ti);
+                        clearTimeout(ti - 1);
+                        next(newAccel);
+                    });
             })
         );
+        setTimeout(() => next(accel), currentTime + 1000 / 60 - Date.now());
         })))));
     })
 })(
@@ -123,7 +125,6 @@
     ((fix) => (...initialArgs) => (f) => f((...args) => fix(fix)(...args)(f), ...initialArgs))
 ,   /* canvas */ document.getElementById('canvas').getContext('2d')
 ,   /* size */ 500
-,   1 / 60
-,   /* startingTime */ Date.now()
-,   /* accelRatio */ 0.3
+,   /* ratio */ 0.05
+,   /* accelRatio */ 1
 );
