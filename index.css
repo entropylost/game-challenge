@@ -3,6 +3,11 @@ body, html {
     background-color: #1f2430;
 }
 
+body {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: #e5e5e5;
+}
+
 #wrapper {
     border: 10px solid #e5e5e5;
     position: absolute;
@@ -39,7 +44,6 @@ body, html {
     transform: translate(-50%, -50%);
     font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
     font-size: 100px;
-    color: #e5e5e5;
     text-align: center;
     cursor: default;
 }
@@ -54,4 +58,64 @@ body, html {
     left: 0;
     bottom: 0;
     right: 0;
+}
+#clock {
+    font-family: "Fira Code", "Source Code Pro", monospace;
+    font-size: 30px;
+    line-height: 1;
+    clip-path: polygon(0 0, 100% 0, 100% 1em, 0 1em);
+}
+#clock > * {
+    display: inline-block;
+}
+.clock-digit {
+    width: 1ch;
+    vertical-align: top;
+    position: relative;
+    animation-iteration-count: infinite;
+}
+.clock-digit-6 {
+    animation-name: clock-6;
+    animation-timing-function: steps(6, jump-end);
+}
+.clock-digit-10 {
+    animation-name: clock-10;
+    animation-timing-function: steps(10, jump-end);
+}
+#minute-2 {
+    animation-duration: 3600s;
+}
+#minute-1 {
+    animation-duration: 600s;
+}
+#second-2 {
+    animation-duration: 60s;
+}
+#second-1 {
+    animation-duration: 10s;
+}
+#sixtieth-2 {
+    animation-duration: 1s;
+}
+#sixtieth-1 {
+    animation-duration: calc(1s / 6);
+}
+#lost-indicator ~ #clock > .clock-digit {
+    animation-play-state: paused;
+}
+@keyframes clock-6 {
+    0% {
+        top: 0em;
+    }
+    100% {
+        top: -6em;
+    }
+}
+@keyframes clock-10 {
+    0% {
+        top: 0em;
+    }
+    100% {
+        top: -10em;
+    }
 }

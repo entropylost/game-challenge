@@ -53,7 +53,7 @@
             canvas.arc(posXArr[i] / ratio / worldSize, posYArr[i] / ratio / worldSize, size / ratio / worldSize, 0, 2 * Math.PI);
             if (i === 0) canvas.stroke(); else canvas.fill();
         });
-        fc((Date.now() - lastTime) / 250, Date.now())((dt, currentTime) =>
+        fc((Date.now() - lastTime) / 1000, Date.now())((dt, currentTime) =>
         fc(
             posXArr.map((p, i) => p + velXArr[i] * dt),
             posYArr.map((p, i) => p + velYArr[i] * dt),
@@ -157,7 +157,7 @@
 ,   /* size */ 750
 ,   /* ratio */ 0.03
 ,   /* worldSize */ 2
-,   /* zoomSize */ 2
+,   /* zoomSize */ 1
 ,   /* accelRatio */ 2
 ,   /* drag */ 0.8
 ,   /* repulseFactor */ 0.1
