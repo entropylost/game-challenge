@@ -60,8 +60,10 @@ body {
     right: 0;
 }
 #clock {
+    position: absolute;
+    margin-left: 5px;
     font-family: "Fira Code", "Source Code Pro", monospace;
-    font-size: 30px;
+    font-size: 40px;
     line-height: 1;
     clip-path: polygon(0 0, 100% 0, 100% 1em, 0 1em);
 }
@@ -118,4 +120,13 @@ body {
     100% {
         top: -10em;
     }
+}
+#text {
+    right: 0;
+    margin: 10px;
+    font-size: 25px;
+    text-align: right;
+}
+code {
+    font-family: "Fira Code", "Source Code Pro", monospace;
 }
