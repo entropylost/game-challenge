@@ -19,12 +19,12 @@ body, html {
 #keydetector {
     opacity: 0;
 }
-#lost-wrapper > #lost {
+#lost {
     opacity: 0;
     background-color: #3339;
     transition: opacity 1s;
 }
-#lost-wrapper > div ~ #lost {
+#lost-indicator ~ #lost {
     opacity: 1;
     position: fixed;
     top: 0;

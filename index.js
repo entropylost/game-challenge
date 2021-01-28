@@ -21,11 +21,11 @@
     canvas.translate(zoomSize / ratio, zoomSize / ratio);
     /* The 0th entity is the player */
     fix(
-        /* posX */ createArr(0.0, 0.0, 0.7,-1.2, 4.0, 0.0, -1.9, 5.0, 0.0,  0.0),
-        /* posY */ createArr(0.0, 5.0, 1.6, 0.4, 3.5, 6.0,-30.0, 1.8,10.0,-11.6),
-        /* velX */ createArr(0.0, 2.7, 0.8,-0.5, 0.5, 0.7,  0.0, 0.1, 0.2,  0.0),
-        /* velY */ createArr(0.0,0.18, 1.2, 1.3, 0.4, 0.3,  3.0, 0.0, 0.3, 0.02),
-        /* size */ createArr(0.1,0.05, 0.3, 0.2, 0.4,0.32,  0.1, 1.4,0.24,  8.0),
+        /* posX */ createArr(0.0, 0.0, 0.7,-1.2, 4.0, 0.0,-1.9, 5.0, 0.0,  0.0),
+        /* posY */ createArr(0.0, 5.0, 1.6, 0.4, 3.5,-6.0, -30, 1.8,10.0,-11.6),
+        /* velX */ createArr(0.0, 2.7, 0.8,-0.5, 0.5, 0.7, 0.0, 0.1, 0.2,  0.0),
+        /* velY */ createArr(0.0,0.18, 1.2, 1.3, 0.4, 0.3, 3.0, 0.0, 0.3, 0.02),
+        /* size */ createArr(0.1,0.05, 0.3, 0.2, 0.4,0.32, 0.1, 1.4,0.24,  8.0),
         [0, 0, 0, 0],
         false,
         Date.now(),
@@ -51,9 +51,9 @@
         sizeArr.forEach((size, i) => {
             canvas.beginPath();
             canvas.arc(posXArr[i] / ratio / worldSize, posYArr[i] / ratio / worldSize, size / ratio / worldSize, 0, 2 * Math.PI);
-            if (i === 0) canvas.fill(); else canvas.stroke();
+            if (i === 0) canvas.stroke(); else canvas.fill();
         });
-        fc((Date.now() - lastTime) / 1000, Date.now())((dt, currentTime) =>
+        fc((Date.now() - lastTime) / 250, Date.now())((dt, currentTime) =>
         fc(
             posXArr.map((p, i) => p + velXArr[i] * dt),
             posYArr.map((p, i) => p + velYArr[i] * dt),
@@ -77,7 +77,7 @@
             ),
         )((velXArr, velYArr) =>
         fc(
-            keydetector.cloneNode(true),
+            keydetector.cloneNode(),
             sizeArr.some((x, i) => i !== 0 && (
                 (posXArr[i] - posXArr[0]) ** 2 + (posYArr[i] - posYArr[0]) ** 2 < (x + sizeArr[0]) ** 2
             )),
@@ -99,7 +99,7 @@
             ),
         )((next) => {
         if (lostNow && !lost) {
-            document.getElementById('lost-wrapper').prepend(document.createElement('div'));
+            document.body.prepend(document.getElementById('lost-indicator').cloneNode());
         }
         document.body.append(keydetector);
         keydetector.focus();
@@ -157,7 +157,7 @@
 ,   /* size */ 750
 ,   /* ratio */ 0.03
 ,   /* worldSize */ 2
-,   /* zoomSize */ 1
+,   /* zoomSize */ 2
 ,   /* accelRatio */ 2
 ,   /* drag */ 0.8
 ,   /* repulseFactor */ 0.1
