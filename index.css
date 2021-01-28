@@ -6,18 +6,44 @@ body, html {
 #wrapper {
     border: 10px solid #e5e5e5;
     position: absolute;
-    width: 500px;
-    height: 500px;
+    width: 750px;
+    height: 750px;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
 }
 #canvas {
     position: absolute;
-    width: 500px;
-    height: 500px;
     filter: invert(0.9);
 }
 #keydetector {
     opacity: 0;
+}
+#lost-wrapper > #lost {
+    opacity: 0;
+    background-color: #3330;
+    transition: opacity 1s;
+}
+#lost-wrapper > div ~ #lost {
+    opacity: 1;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background-color: #3339;
+}
+#lost-text {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 100px;
+    color: #e5e5e5;
+    text-align: center;
+}
+#lost-text-2 {
+    font-size: 50px;
+    color: #adadad;
 }

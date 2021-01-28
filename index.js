@@ -9,6 +9,7 @@
 ,   size /* The size of the canvas. */
 ,   ratio /* The ratio of the sizes to control line width. */
 ,   accelRatio
+,   drag
 ) => {
     console.log(canvas);
     canvas.scale(size / 2 * ratio, size / 2 * ratio);
@@ -21,8 +22,8 @@
         createArr(0.15, -0.3),
         createArr(0.1, 0.2),
         [0, 0, 0, 0],
-        Date.now(),
         false,
+        Date.now(),
         document.getElementById('keydetector')
     )((
         f,
@@ -32,8 +33,8 @@
         velYArr,
         sizeArr,
         accel,
-        lastTime,
         lost,
+        lastTime,
         keydetector,
     ) => {
         keydetector.remove();
@@ -50,23 +51,26 @@
         )((posXArr, posYArr) =>
         fc(
             velXArr.map((v, i) =>
-                (v + ((i == 0) ? (accel[3] - accel[1]) * dt * accelRatio : 0))
+                (v + (i === 0 && !lost ? (accel[3] - accel[1]) * dt * accelRatio : 0))
                 * (
                     Math.abs(posXArr[i]) > 1 - sizeArr[i] &&
                     Math.sign(v) == Math.sign(posXArr[i])
-                ? -1 : 1)
+                ? -1 : 1) * (i === 0 ? drag ** dt : 1)
             ),
             velYArr.map((v, i) =>
-                (v + ((i == 0) ? (accel[2] - accel[0]) * dt * accelRatio : 0))
+                (v + (i === 0 && !lost ? (accel[2] - accel[0]) * dt * accelRatio : 0))
                 * (
                     Math.abs(posYArr[i]) > 1 - sizeArr[i] &&
                     Math.sign(v) == Math.sign(posYArr[i])
-                ? -1 : 1)
+                ? -1 : 1) * (i === 0 ? drag ** dt : 1)
             ),
         )((velXArr, velYArr) =>
         fc(
-            keydetector.cloneNode(true)
-        )((keydetector) =>
+            keydetector.cloneNode(true),
+            sizeArr.some((x, i) => i !== 0 && (
+                (posXArr[i] - posXArr[0]) ** 2 + (posYArr[i] - posYArr[0]) ** 2 < (x + sizeArr[0]) ** 2
+            )),
+        )((keydetector, lostNow) =>
         fc(
             (accel) => f(
                 posXArr,
@@ -75,11 +79,14 @@
                 velYArr,
                 sizeArr,
                 accel,
+                lost || lostNow,
                 currentTime,
-                lost,
                 keydetector,
             ),
         )((next) => {
+        if (lostNow && !lost) {
+            document.getElementById('lost-wrapper').prepend(document.createElement('div'));
+        }
         document.body.append(keydetector);
         keydetector.focus();
         keydetector.addEventListener("keyup", (e) =>
@@ -88,9 +95,9 @@
                 e.key === 'a' ? [accel[0], 0, accel[2], accel[3]] :
                 e.key === 's' ? [accel[0], accel[1], 0, accel[3]] :
                 e.key === 'd' ? [accel[0], accel[1], accel[2], 0] :
-                undefined
+                accel
             )((newAccel) => {
-                if (newAccel !== undefined)
+                if (JSON.stringify(newAccel) !== JSON.stringify(accel))
                     fc(setTimeout(() => {}, 0))(ti => {
                         clearTimeout(ti);
                         clearTimeout(ti - 1);
@@ -104,9 +111,9 @@
                 e.key === 'a' ? [accel[0], 1, accel[2], accel[3]] :
                 e.key === 's' ? [accel[0], accel[1], 1, accel[3]] :
                 e.key === 'd' ? [accel[0], accel[1], accel[2], 1] :
-                undefined
+                accel
             )((newAccel) => {
-                if (newAccel !== undefined)
+                if (JSON.stringify(newAccel) !== JSON.stringify(accel))
                     fc(setTimeout(() => {}, 0))(ti => {
                         clearTimeout(ti);
                         clearTimeout(ti - 1);
@@ -124,7 +131,8 @@
     ((fix) => (...initialArgs) => (f) => f((...args) => fix(fix)(...args)(f), ...initialArgs))
     ((fix) => (...initialArgs) => (f) => f((...args) => fix(fix)(...args)(f), ...initialArgs))
 ,   /* canvas */ document.getElementById('canvas').getContext('2d')
-,   /* size */ 500
+,   /* size */ 750
 ,   /* ratio */ 0.05
-,   /* accelRatio */ 1
+,   /* accelRatio */ 2
+,   /* drag */ 0.8
 );
