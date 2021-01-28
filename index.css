@@ -41,8 +41,17 @@ body, html {
     font-size: 100px;
     color: #e5e5e5;
     text-align: center;
+    cursor: default;
 }
 #lost-text-2 {
     font-size: 50px;
     color: #adadad;
+}
+#keydetector {
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
 }

@@ -9,23 +9,29 @@
 ,   size /* The size of the canvas. */
 ,   ratio /* The ratio of the sizes to control line width. */
 ,   worldSize
+,   zoomSize
 ,   accelRatio
 ,   drag
+,   repulseFactor
+,   superRechargeTime
+,   sizeIncrease
 ) => {
     console.log(canvas);
-    canvas.scale(size / 2 * ratio, size / 2 * ratio);
-    canvas.translate(1 / ratio, 1 / ratio);
+    canvas.scale(size / 2 * ratio / zoomSize, size / 2 * ratio / zoomSize);
+    canvas.translate(zoomSize / ratio, zoomSize / ratio);
     /* The 0th entity is the player */
     fix(
-        /* posX */ createArr(0.0 ,  0.2,  0.0, 0.0),
-        /* posY */ createArr(0.0 , -0.3,  0.5, 2.0),
-        /* velX */ createArr(0.2 ,  0.1,  1.7, 0.2),
-        /* velY */ createArr(0.15, -0.3, -0.1, 0.9),
-        /* size */ createArr(0.1 ,  0.2, 0.05, 0.4),
+        /* posX */ createArr(0.0, 0.0, 0.7,-1.2, 4.0, 0.0, -1.9, 5.0, 0.0,  0.0),
+        /* posY */ createArr(0.0, 5.0, 1.6, 0.4, 3.5, 6.0,-30.0, 1.8,10.0,-11.6),
+        /* velX */ createArr(0.0, 2.7, 0.8,-0.5, 0.5, 0.7,  0.0, 0.1, 0.2,  0.0),
+        /* velY */ createArr(0.0,0.18, 1.2, 1.3, 0.4, 0.3,  3.0, 0.0, 0.3, 0.02),
+        /* size */ createArr(0.1,0.05, 0.3, 0.2, 0.4,0.32,  0.1, 1.4,0.24,  8.0),
         [0, 0, 0, 0],
         false,
         Date.now(),
-        document.getElementById('keydetector')
+        document.getElementById('keydetector'),
+        0,
+        false,
     )((
         f,
         posXArr,
@@ -37,6 +43,8 @@
         lost,
         lastTime,
         keydetector,
+        lastSuperTime,
+        isSuperActive,
     ) => {
         keydetector.remove();
         canvas.clearRect(-1 / ratio, -1 / ratio, 2 / ratio, 2 / ratio);
@@ -57,6 +65,7 @@
                     Math.abs(posXArr[i]) > worldSize - sizeArr[i] &&
                     Math.sign(v) == Math.sign(posXArr[i])
                 ? -1 : 1) * (i === 0 ? drag ** dt : 1)
+                + (isSuperActive && i !== 0 ? repulseFactor * (posXArr[i] - posXArr[0]) / ((posXArr[i] - posXArr[0]) ** 2 + (posYArr[i] - posYArr[0]) ** 2) / sizeArr[i]: 0)
             ),
             velYArr.map((v, i) =>
                 (v + (i === 0 && !lost ? (accel[2] - accel[0]) * dt * accelRatio : 0))
@@ -64,6 +73,7 @@
                     Math.abs(posYArr[i]) > worldSize - sizeArr[i] &&
                     Math.sign(v) == Math.sign(posYArr[i])
                 ? -1 : 1) * (i === 0 ? drag ** dt : 1)
+                + (isSuperActive && i !== 0 ? repulseFactor * (posYArr[i] - posYArr[0]) / ((posXArr[i] - posXArr[0]) ** 2 + (posYArr[i] - posYArr[0]) ** 2) / sizeArr[i]: 0)
             ),
         )((velXArr, velYArr) =>
         fc(
@@ -71,9 +81,10 @@
             sizeArr.some((x, i) => i !== 0 && (
                 (posXArr[i] - posXArr[0]) ** 2 + (posYArr[i] - posYArr[0]) ** 2 < (x + sizeArr[0]) ** 2
             )),
-        )((keydetector, lostNow) =>
+            sizeArr.map((x, i) => i === 0 ? x + sizeIncrease * dt : x)
+        )((keydetector, lostNow, sizeArr) =>
         fc(
-            (accel) => f(
+            (accel, superNow) => f(
                 posXArr,
                 posYArr,
                 velXArr,
@@ -83,6 +94,8 @@
                 lost || lostNow,
                 currentTime,
                 keydetector,
+                superNow ? Date.now() : lastSuperTime,
+                superNow,
             ),
         )((next) => {
         if (lostNow && !lost) {
@@ -90,7 +103,16 @@
         }
         document.body.append(keydetector);
         keydetector.focus();
-        keydetector.addEventListener("keyup", (e) =>
+        keydetector.addEventListener('mousedown', (e) => {
+            if (Date.now() - lastSuperTime > superRechargeTime && !lost && !lostNow)
+                fc(setTimeout(() => {}, 0))(ti => {
+                    clearTimeout(ti);
+                    clearTimeout(ti - 1);
+                    console.log('Using super');
+                    next(accel, true);
+                });
+        });
+        keydetector.addEventListener('keyup', (e) =>
             fc(
                 e.key === 'w' ? [0, accel[1], accel[2], accel[3]] :
                 e.key === 'a' ? [accel[0], 0, accel[2], accel[3]] :
@@ -102,11 +124,11 @@
                     fc(setTimeout(() => {}, 0))(ti => {
                         clearTimeout(ti);
                         clearTimeout(ti - 1);
-                        next(newAccel);
+                        next(newAccel, false);
                     });
             })
         );
-        keydetector.addEventListener("keydown", (e) =>
+        keydetector.addEventListener('keydown', (e) =>
             fc(
                 e.key === 'w' ? [1, accel[1], accel[2], accel[3]] :
                 e.key === 'a' ? [accel[0], 1, accel[2], accel[3]] :
@@ -118,11 +140,11 @@
                     fc(setTimeout(() => {}, 0))(ti => {
                         clearTimeout(ti);
                         clearTimeout(ti - 1);
-                        next(newAccel);
+                        next(newAccel, false);
                     });
             })
         );
-        setTimeout(() => next(accel), currentTime + 1000 / 60 - Date.now());
+        setTimeout(() => next(accel, false), currentTime + 1000 / 60 - Date.now());
         })))));
     })
 })(
@@ -135,6 +157,10 @@
 ,   /* size */ 750
 ,   /* ratio */ 0.03
 ,   /* worldSize */ 2
+,   /* zoomSize */ 1
 ,   /* accelRatio */ 2
 ,   /* drag */ 0.8
+,   /* repulseFactor */ 0.1
+,   /* superRechargeTime */ 1000 * 1
+,   /* sizeIncrease */ 0.0005
 );
