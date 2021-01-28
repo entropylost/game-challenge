@@ -8,6 +8,7 @@
 ,   canvas /* The 2d context of the canvas. */
 ,   size /* The size of the canvas. */
 ,   ratio /* The ratio of the sizes to control line width. */
+,   worldSize
 ,   accelRatio
 ,   drag
 ) => {
@@ -16,11 +17,11 @@
     canvas.translate(1 / ratio, 1 / ratio);
     /* The 0th entity is the player */
     fix(
-        createArr(0, 0.2),
-        createArr(0, -0.3),
-        createArr(0.2, 0.1),
-        createArr(0.15, -0.3),
-        createArr(0.1, 0.2),
+        /* posX */ createArr(0.0 ,  0.2,  0.0, 0.0),
+        /* posY */ createArr(0.0 , -0.3,  0.5, 2.0),
+        /* velX */ createArr(0.2 ,  0.1,  1.7, 0.2),
+        /* velY */ createArr(0.15, -0.3, -0.1, 0.9),
+        /* size */ createArr(0.1 ,  0.2, 0.05, 0.4),
         [0, 0, 0, 0],
         false,
         Date.now(),
@@ -41,7 +42,7 @@
         canvas.clearRect(-1 / ratio, -1 / ratio, 2 / ratio, 2 / ratio);
         sizeArr.forEach((size, i) => {
             canvas.beginPath();
-            canvas.arc(posXArr[i] / ratio, posYArr[i] / ratio, size / ratio, 0, 2 * Math.PI);
+            canvas.arc(posXArr[i] / ratio / worldSize, posYArr[i] / ratio / worldSize, size / ratio / worldSize, 0, 2 * Math.PI);
             if (i === 0) canvas.fill(); else canvas.stroke();
         });
         fc((Date.now() - lastTime) / 1000, Date.now())((dt, currentTime) =>
@@ -53,14 +54,14 @@
             velXArr.map((v, i) =>
                 (v + (i === 0 && !lost ? (accel[3] - accel[1]) * dt * accelRatio : 0))
                 * (
-                    Math.abs(posXArr[i]) > 1 - sizeArr[i] &&
+                    Math.abs(posXArr[i]) > worldSize - sizeArr[i] &&
                     Math.sign(v) == Math.sign(posXArr[i])
                 ? -1 : 1) * (i === 0 ? drag ** dt : 1)
             ),
             velYArr.map((v, i) =>
                 (v + (i === 0 && !lost ? (accel[2] - accel[0]) * dt * accelRatio : 0))
                 * (
-                    Math.abs(posYArr[i]) > 1 - sizeArr[i] &&
+                    Math.abs(posYArr[i]) > worldSize - sizeArr[i] &&
                     Math.sign(v) == Math.sign(posYArr[i])
                 ? -1 : 1) * (i === 0 ? drag ** dt : 1)
             ),
@@ -132,7 +133,8 @@
     ((fix) => (...initialArgs) => (f) => f((...args) => fix(fix)(...args)(f), ...initialArgs))
 ,   /* canvas */ document.getElementById('canvas').getContext('2d')
 ,   /* size */ 750
-,   /* ratio */ 0.05
+,   /* ratio */ 0.03
+,   /* worldSize */ 2
 ,   /* accelRatio */ 2
 ,   /* drag */ 0.8
 );

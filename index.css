@@ -21,7 +21,7 @@ body, html {
 }
 #lost-wrapper > #lost {
     opacity: 0;
-    background-color: #3330;
+    background-color: #3339;
     transition: opacity 1s;
 }
 #lost-wrapper > div ~ #lost {
@@ -31,7 +31,6 @@ body, html {
     left: 0;
     bottom: 0;
     right: 0;
-    background-color: #3339;
 }
 #lost-text {
     position: fixed;
